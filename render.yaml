@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: blog
+    runtime: docker
+    region: singapore
+    plan: free
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
+    dockerfilePath: ./Dockerfile
