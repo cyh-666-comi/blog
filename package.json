@@ -1,0 +1,12 @@
+{
+  "name": "blog",
+  "private": true,
+  "scripts": {
+    "postinstall": "cd server && npm install && cd ../client && npm install",
+    "build": "cd client && npm run build",
+    "start": "cd server && node src/index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
