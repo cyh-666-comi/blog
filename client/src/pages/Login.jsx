@@ -36,7 +36,6 @@ export default function Login() {
         <div className="text-center mb-8">
           <p className="text-6xl mb-4">🐕</p>
           <h1 className="text-2xl font-bold text-brown-800">线条小狗日记</h1>
-          <p className="text-brown-400 text-sm mt-1">cyh ♥ frz 的恋爱日常</p>
         </div>
 
         {error && <div className="bg-red-50 border border-red-200 text-red-500 text-sm p-3 rounded-2xl mb-4 text-center">{error}</div>}
@@ -48,7 +47,7 @@ export default function Login() {
                 <label className="block text-sm font-medium text-brown-500 mb-1">昵称</label>
                 <input type="text" value={username} onChange={e => setUsername(e.target.value)}
                   className="w-full px-4 py-3 bg-warm-50 border border-warm-200 rounded-2xl text-brown-700 placeholder-brown-300 focus:outline-none focus:border-coral-300 transition text-center"
-                  placeholder="cyh 或 frz" required />
+                  placeholder="请输入昵称" required />
               </div>
               <div>
                 <label className="block text-sm font-medium text-brown-500 mb-1">密码</label>
