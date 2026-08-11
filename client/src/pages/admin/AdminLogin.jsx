@@ -13,43 +13,41 @@ export default function AdminLogin() {
   if (isAdmin) { navigate('/admin'); return null; }
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+    e.preventDefault(); setError(''); setLoading(true);
     try { await login(username, password); navigate('/admin'); }
     catch (err) { setError(err.message); }
     finally { setLoading(false); }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 w-full max-w-sm shadow-xl">
+    <div className="min-h-screen flex items-center justify-center bg-warm-50">
+      <div className="bg-white rounded-3xl shadow-soft-lg p-8 w-full max-w-sm border border-warm-200">
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-cyan-400 mb-1">◈ 后台登录</h1>
-          <p className="text-slate-500 text-xs">博客管理系统</p>
+          <p className="text-5xl mb-3">🐕</p>
+          <h1 className="text-2xl font-bold text-brown-800">写日记啦~</h1>
+          <p className="text-brown-400 text-xs mt-1">我们的恋爱日记</p>
         </div>
 
-        {error && <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm p-3 rounded-lg mb-4">{error}</div>}
+        {error && <div className="bg-red-50 border border-red-200 text-red-500 text-sm p-3 rounded-2xl mb-4">{error}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">用户名</label>
+            <label className="block text-sm font-medium text-brown-500 mb-1">昵称</label>
             <input type="text" value={username} onChange={e => setUsername(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition"
-              placeholder="admin" required />
+              className="w-full px-4 py-2.5 bg-warm-50 border border-warm-200 rounded-2xl text-brown-700 placeholder-brown-300 focus:outline-none focus:border-coral-300 transition"
+              placeholder="cyh 或 frz" required />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">密码</label>
+            <label className="block text-sm font-medium text-brown-500 mb-1">密码</label>
             <input type="password" value={password} onChange={e => setPassword(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition"
-              placeholder="••••••••" required />
+              className="w-full px-4 py-2.5 bg-warm-50 border border-warm-200 rounded-2xl text-brown-700 placeholder-brown-300 focus:outline-none focus:border-coral-300 transition"
+              placeholder="••••••" required />
           </div>
           <button type="submit" disabled={loading}
-            className="w-full py-2.5 bg-cyan-600 text-white rounded-lg hover:bg-cyan-500 disabled:opacity-50 transition font-medium">
-            {loading ? '登录中...' : '◈ 登录'}
+            className="w-full py-3 bg-coral-400 text-white rounded-2xl hover:bg-coral-500 disabled:opacity-50 transition font-medium shadow-md shadow-coral-200 text-lg">
+            {loading ? '正在进入...' : '🐾 进入'}
           </button>
         </form>
-        <p className="text-xs text-slate-600 text-center mt-4">默认账号: admin / admin123</p>
       </div>
     </div>
   );

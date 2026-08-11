@@ -23,12 +23,12 @@ export default function CategoryPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-slate-100 mb-2">📁 {category?.name || slug}</h1>
-      {category?.description && <p className="text-slate-400 mb-6">{category.description}</p>}
+      <h1 className="text-2xl font-bold text-brown-800 mb-2">📂 {category?.name || slug}</h1>
+      {category?.description && <p className="text-brown-400 mb-6">{category.description}</p>}
       {loading ? (
-        <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-7 w-7 border-2 border-slate-700 border-t-cyan-500"></div></div>
+        <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-7 w-7 border-2 border-coral-200 border-t-coral-400"></div></div>
       ) : articles.length === 0 ? (
-        <div className="text-center py-20 text-slate-500">暂无文章</div>
+        <div className="text-center py-20 text-brown-400">还没有日记~</div>
       ) : (
         <>
           <div className="grid gap-6 md:grid-cols-2">{articles.map(a => <ArticleCard key={a.id} article={a} />)}</div>

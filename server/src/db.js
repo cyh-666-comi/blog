@@ -85,15 +85,23 @@ function initDatabase() {
     CREATE INDEX IF NOT EXISTS idx_article_tags_tag ON article_tags(tag_id);
   `);
 
-  // 创建默认管理员账号 (admin / admin123)
+  // 创建默认用户账号
   const bcrypt = require('bcryptjs');
-  const adminExists = db.prepare('SELECT id FROM users WHERE username = ?').get('admin');
-  if (!adminExists) {
-    const hash = bcrypt.hashSync('admin123', 10);
+  const cyhExists = db.prepare('SELECT id FROM users WHERE username = ?').get('cyh');
+  if (!cyhExists) {
+    const hash = bcrypt.hashSync('050728', 10);
     db.prepare('INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)').run(
-      'admin', 'admin@blog.com', hash, 'admin'
+      'cyh', 'cyh@diary.com', hash, 'admin'
     );
-    console.log('✓ 默认管理员账号已创建: admin / admin123');
+    console.log('✓ 默认用户已创建: cyh / 050728');
+  }
+  const frzExists = db.prepare('SELECT id FROM users WHERE username = ?').get('frz');
+  if (!frzExists) {
+    const hash = bcrypt.hashSync('040216', 10);
+    db.prepare('INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)').run(
+      'frz', 'frz@diary.com', hash, 'admin'
+    );
+    console.log('✓ 默认用户已创建: frz / 040216');
   }
 }
 

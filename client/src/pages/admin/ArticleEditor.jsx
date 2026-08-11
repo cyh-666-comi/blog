@@ -25,10 +25,7 @@ export default function ArticleEditor() {
   const navigate = useNavigate();
   const textareaRef = useRef(null);
 
-  const [form, setForm] = useState({
-    title: '', content: '', summary: '', cover_image: '',
-    status: 'draft', category_id: '', tag_ids: [],
-  });
+  const [form, setForm] = useState({ title: '', content: '', summary: '', cover_image: '', status: 'draft', category_id: '', tag_ids: [] });
   const [categories, setCategories] = useState([]);
   const [tags, setTags] = useState([]);
   const [saving, setSaving] = useState(false);
@@ -42,70 +39,55 @@ export default function ArticleEditor() {
     categoriesAPI.getList().then(res => setCategories(res.data)).catch(() => {});
     tagsAPI.getList().then(res => setTags(res.data)).catch(() => {});
     if (isEdit) {
-      articlesAPI.getById(id).then(article => {
-        setForm({
-          title: article.title || '', content: article.content || '', summary: article.summary || '',
-          cover_image: article.cover_image || '', status: article.status || 'draft',
-          category_id: article.category?.id || '', tag_ids: (article.tags || []).map(t => t.id),
-        });
-      }).catch(err => setError('加载文章失败: ' + err.message));
+      articlesAPI.getById(id).then(a => {
+        setForm({ title: a.title || '', content: a.content || '', summary: a.summary || '', cover_image: a.cover_image || '', status: a.status || 'draft', category_id: a.category?.id || '', tag_ids: (a.tags || []).map(t => t.id) });
+      }).catch(err => setError('加载失败: ' + err.message));
     }
   }, [id, isEdit]);
 
-  const handleChange = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
+  const handleChange = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
-  const handleTagToggle = (tagId) => {
-    setForm(prev => ({
-      ...prev,
-      tag_ids: prev.tag_ids.includes(tagId) ? prev.tag_ids.filter(id => id !== tagId) : [...prev.tag_ids, tagId],
-    }));
-  };
+  const handleTagToggle = (tid) => setForm(p => ({ ...p, tag_ids: p.tag_ids.includes(tid) ? p.tag_ids.filter(i => i !== tid) : [...p.tag_ids, tid] }));
 
-  const insertAtCursor = (template) => {
+  const insertAtCursor = (tpl) => {
     const ta = textareaRef.current; if (!ta) return;
-    const start = ta.selectionStart, end = ta.selectionEnd;
-    handleChange('content', form.content.substring(0, start) + template + form.content.substring(end));
-    setTimeout(() => { ta.focus(); ta.selectionStart = ta.selectionEnd = start + template.length; }, 0);
+    const s = ta.selectionStart, e = ta.selectionEnd;
+    handleChange('content', form.content.substring(0, s) + tpl + form.content.substring(e));
+    setTimeout(() => { ta.focus(); ta.selectionStart = ta.selectionEnd = s + tpl.length; }, 0);
   };
 
-  const wrapSelection = (before, after) => {
+  const wrapSelection = (b, a) => {
     const ta = textareaRef.current; if (!ta) return;
-    const start = ta.selectionStart, end = ta.selectionEnd;
-    const selected = form.content.substring(start, end) || '文本';
-    handleChange('content', form.content.substring(0, start) + before + selected + after + form.content.substring(end));
-    setTimeout(() => { ta.focus(); ta.selectionStart = start + before.length; ta.selectionEnd = start + before.length + selected.length; }, 0);
+    const s = ta.selectionStart, e = ta.selectionEnd;
+    const sel = form.content.substring(s, e) || '文本';
+    handleChange('content', form.content.substring(0, s) + b + sel + a + form.content.substring(e));
+    setTimeout(() => { ta.focus(); ta.selectionStart = s + b.length; ta.selectionEnd = s + b.length + sel.length; }, 0);
   };
 
-  const handleToolClick = (tool) => {
-    if (tool.tag === 'strong') wrapSelection('<strong>', '</strong>');
-    else if (tool.tag === 'em') wrapSelection('<em>', '</em>');
-    else if (tool.tag === 'u') wrapSelection('<u>', '</u>');
-    else if (tool.tag === 'a') {
-      const ta = textareaRef.current;
-      const selected = form.content.substring(ta?.selectionStart || 0, ta?.selectionEnd || 0) || '链接文字';
-      insertAtCursor(`<a href="https://">${selected}</a>`);
-    } else insertAtCursor(tool.template);
+  const handleToolClick = (t) => {
+    if (t.tag === 'strong') wrapSelection('<strong>', '</strong>');
+    else if (t.tag === 'em') wrapSelection('<em>', '</em>');
+    else if (t.tag === 'u') wrapSelection('<u>', '</u>');
+    else if (t.tag === 'a') { const ta = textareaRef.current; const sel = form.content.substring(ta?.selectionStart || 0, ta?.selectionEnd || 0) || '链接文字'; insertAtCursor(`<a href="https://">${sel}</a>`); }
+    else insertAtCursor(t.template);
   };
 
   const handleImageUpload = async (e) => {
-    const file = e.target.files?.[0]; if (!file) return;
+    const f = e.target.files?.[0]; if (!f) return;
     setUploading(true);
-    try {
-      const res = await uploadAPI.uploadImage(file);
-      const fullUrl = res.url.startsWith('/') ? res.url : `/${res.url}`;
-      insertAtCursor(`<img src="${fullUrl}" alt="${file.name}" />`);
-    } catch (err) { alert('上传失败: ' + err.message); }
+    try { const r = await uploadAPI.uploadImage(f); const url = r.url.startsWith('/') ? r.url : `/${r.url}`; insertAtCursor(`<img src="${url}" alt="${f.name}" />`); }
+    catch (err) { alert('上传失败: ' + err.message); }
     finally { setUploading(false); }
   };
 
   const handleSubmit = async (e) => {
     e?.preventDefault();
-    if (!form.title.trim()) { setError('请输入文章标题'); return; }
+    if (!form.title.trim()) { setError('请输入日记标题'); return; }
     setSaving(true); setError(''); setSuccess('');
     try {
       const data = { ...form, category_id: form.category_id || null };
-      if (isEdit) { await articlesAPI.update(id, data); setSuccess('文章已更新！'); }
-      else { const result = await articlesAPI.create(data); setSuccess('文章已发布！'); setTimeout(() => navigate(`/admin/articles/${result.id}/edit`, { replace: true }), 800); return; }
+      if (isEdit) { await articlesAPI.update(id, data); setSuccess('日记已更新！'); }
+      else { const r = await articlesAPI.create(data); setSuccess('日记已发布！💕'); setTimeout(() => navigate(`/admin/articles/${r.id}/edit`, { replace: true }), 800); return; }
     } catch (err) { setError(err.message); }
     finally { setSaving(false); }
   };
@@ -117,97 +99,94 @@ export default function ArticleEditor() {
   };
 
   useEffect(() => {
-    const handler = (e) => { if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); handleSubmit(e); } };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    const h = (e) => { if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); handleSubmit(e); } };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
   }, [form, isEdit, id]);
 
-  const inputClass = "w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition";
+  const inp = "w-full px-4 py-2.5 bg-warm-50 border border-warm-200 rounded-2xl text-brown-700 placeholder-brown-300 focus:outline-none focus:border-coral-300 focus:ring-2 focus:ring-coral-100 transition";
 
   return (
     <div className="max-w-4xl">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-slate-100">{isEdit ? '✏️ 编辑文章' : '✏️ 写文章'}</h1>
-        <button onClick={() => navigate('/admin/articles')} className="text-sm px-4 py-1.5 border border-slate-700 rounded-lg text-slate-400 hover:text-slate-200 hover:border-slate-500 transition">返回列表</button>
+        <h1 className="text-2xl font-bold text-brown-800">{isEdit ? '✏️ 编辑日记' : '✍️ 写日记'}</h1>
+        <button onClick={() => navigate('/admin/articles')} className="text-sm px-4 py-1.5 border border-warm-200 rounded-full text-brown-400 hover:text-coral-500 hover:border-coral-300 transition">返回列表</button>
       </div>
 
-      {error && <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm p-3 rounded-lg mb-4 flex items-center gap-2">⚠️ {error}<button onClick={() => setError('')} className="ml-auto opacity-60 hover:opacity-100">×</button></div>}
-      {success && <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm p-3 rounded-lg mb-4 flex items-center gap-2">✅ {success}<button onClick={() => setSuccess('')} className="ml-auto opacity-60 hover:opacity-100">×</button></div>}
+      {error && <div className="bg-red-50 border border-red-200 text-red-500 text-sm p-3 rounded-2xl mb-4 flex items-center gap-2">⚠️ {error}<button onClick={() => setError('')} className="ml-auto opacity-60 hover:opacity-100">×</button></div>}
+      {success && <div className="bg-emerald-50 border border-emerald-200 text-emerald-500 text-sm p-3 rounded-2xl mb-4 flex items-center gap-2">✅ {success}<button onClick={() => setSuccess('')} className="ml-auto opacity-60 hover:opacity-100">×</button></div>}
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <input type="text" value={form.title} onChange={e => handleChange('title', e.target.value)}
-          className="w-full px-4 py-3 text-xl font-bold bg-slate-800 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition"
-          placeholder="输入文章标题..." />
+          className="w-full px-5 py-3.5 text-xl font-bold bg-white border border-warm-200 rounded-3xl text-brown-800 placeholder-brown-300 focus:outline-none focus:border-coral-300 focus:ring-2 focus:ring-coral-100 transition shadow-card"
+          placeholder="今天想写点什么？📝" />
 
         <div className="flex flex-wrap items-center gap-3">
-          <select value={form.category_id} onChange={e => handleChange('category_id', e.target.value)} className={inputClass + " w-auto"}>
-            <option value="">📁 无分类</option>
-            {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+          <select value={form.category_id} onChange={e => handleChange('category_id', e.target.value)} className={inp + " w-auto"}>
+            <option value="">📂 无分类</option>
+            {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
-          <select value={form.status} onChange={e => handleChange('status', e.target.value)} className={inputClass + " w-auto"}>
+          <select value={form.status} onChange={e => handleChange('status', e.target.value)} className={inp + " w-auto"}>
             <option value="draft">📝 草稿</option>
-            <option value="published">🚀 发布</option>
+            <option value="published">💕 发布</option>
           </select>
           <div className="flex flex-wrap gap-1.5">
-            {tags.map(tag => (
-              <button key={tag.id} type="button" onClick={() => handleTagToggle(tag.id)}
-                className={`text-xs px-2.5 py-1 rounded-full transition ${
-                  form.tag_ids.includes(tag.id)
-                    ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
-                    : 'bg-slate-800 text-slate-500 border border-slate-700 hover:border-slate-500 hover:text-slate-300'
-                }`}>{tag.name}</button>
+            {tags.map(t => (
+              <button key={t.id} type="button" onClick={() => handleTagToggle(t.id)}
+                className={`text-xs px-3 py-1 rounded-full transition border ${
+                  form.tag_ids.includes(t.id) ? 'bg-coral-50 text-coral-500 border-coral-200' : 'bg-white text-brown-400 border-warm-200 hover:border-coral-300'
+                }`}>{t.name}</button>
             ))}
-            {tags.length === 0 && <span className="text-xs text-slate-600 py-1">无标签（去标签管理创建）</span>}
+            {tags.length === 0 && <span className="text-xs text-brown-300 py-1">还没有标签~</span>}
           </div>
         </div>
 
-        <textarea value={form.summary} onChange={e => handleChange('summary', e.target.value)} className={inputClass + " resize-none"} rows={2} placeholder="文章摘要（可选，显示在文章列表中）..." />
+        <textarea value={form.summary} onChange={e => handleChange('summary', e.target.value)} className={inp + " resize-none"} rows={2} placeholder="日记摘要（可选）..." />
+        <input type="text" value={form.cover_image} onChange={e => handleChange('cover_image', e.target.value)} className={inp} placeholder="封面图片URL（可选）..." />
+        {form.cover_image && <img src={form.cover_image} alt="封面" className="mt-2 h-40 rounded-2xl object-cover border border-warm-200" />}
 
-        <div>
-          <input type="text" value={form.cover_image} onChange={e => handleChange('cover_image', e.target.value)} className={inputClass} placeholder="封面图片 URL（可选）..." />
-          {form.cover_image && <img src={form.cover_image} alt="封面" className="mt-2 h-40 rounded-lg object-cover border border-slate-700" />}
-        </div>
-
-        <div className="border border-slate-700 rounded-lg overflow-hidden">
-          <div className="flex flex-wrap items-center gap-0.5 px-2 py-2 bg-slate-800 border-b border-slate-700">
-            {TOOLS.map(tool => (
-              <button key={tool.tag} type="button" onClick={() => handleToolClick(tool)} title={`插入 <${tool.tag}>`}
-                className="px-2.5 py-1.5 text-xs font-medium text-slate-400 hover:bg-slate-700 hover:text-slate-200 rounded transition">{tool.label}</button>
+        <div className="border border-warm-200 rounded-3xl overflow-hidden shadow-card">
+          <div className="flex flex-wrap items-center gap-0.5 px-3 py-2 bg-warm-50 border-b border-warm-200">
+            {TOOLS.map(t => (
+              <button key={t.tag} type="button" onClick={() => handleToolClick(t)} title={`插入 <${t.tag}>`}
+                className="px-2.5 py-1.5 text-xs font-medium text-brown-500 hover:bg-coral-50 hover:text-coral-500 rounded-xl transition">{t.label}</button>
             ))}
-            <span className="mx-1 text-slate-700">|</span>
-            <label className={`px-2.5 py-1.5 text-xs font-medium rounded transition cursor-pointer ${uploading ? 'text-slate-600' : 'text-slate-400 hover:bg-slate-700 hover:text-slate-200'}`}>
-              {uploading ? '⏳ 上传中' : '📷 上传图片'}
+            <span className="mx-1 text-warm-300">|</span>
+            <label className={`px-2.5 py-1.5 text-xs font-medium rounded-xl transition cursor-pointer ${uploading ? 'text-brown-300' : 'text-brown-500 hover:bg-coral-50 hover:text-coral-500'}`}>
+              {uploading ? '⏳' : '📷 上传图片'}
               <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" disabled={uploading} />
             </label>
             <span className="flex-1" />
             <button type="button" onClick={() => setPreview(!preview)}
-              className={`px-3 py-1.5 text-xs font-medium rounded transition ${preview ? 'bg-cyan-500/15 text-cyan-400' : 'text-slate-500 hover:bg-slate-700 hover:text-slate-300'}`}>
+              className={`px-3 py-1.5 text-xs font-medium rounded-xl transition ${preview ? 'bg-coral-50 text-coral-500' : 'text-brown-400 hover:bg-warm-100'}`}>
               {preview ? '✏️ 编辑' : '👁 预览'}
             </button>
           </div>
           {preview ? (
-            <div className="article-content px-4 py-3 min-h-[400px] max-h-[600px] overflow-y-auto bg-slate-900"
-              dangerouslySetInnerHTML={{ __html: form.content || '<p class="text-slate-600">暂无内容</p>' }} />
+            <div className="article-content px-5 py-4 min-h-[400px] max-h-[600px] overflow-y-auto bg-white"
+              dangerouslySetInnerHTML={{ __html: form.content || '<p class="text-brown-300">还没有内容哦~</p>' }} />
           ) : (
             <textarea ref={textareaRef} value={form.content} onChange={e => handleChange('content', e.target.value)}
-              className="w-full px-4 py-3 bg-slate-900 font-mono text-sm min-h-[400px] resize-y focus:outline-none text-slate-200 placeholder-slate-600"
-              placeholder="<p>开始写作... 使用上方工具栏快速插入格式，或直接编写 HTML</p>" />
+              className="w-full px-5 py-4 bg-white font-mono text-sm min-h-[400px] resize-y focus:outline-none text-brown-700 placeholder-brown-300"
+              placeholder="<p>开始写日记吧... 💕</p>" />
           )}
         </div>
 
         <div className="flex items-center gap-3 pt-2">
-          <button type="submit" disabled={saving} className="px-6 py-2.5 bg-cyan-600 text-white rounded-lg hover:bg-cyan-500 disabled:opacity-50 transition font-medium shadow-lg shadow-cyan-500/10">
-            {saving ? '⏳ 保存中...' : isEdit ? '💾 更新文章' : '🚀 发布文章'}
+          <button type="submit" disabled={saving}
+            className="px-6 py-3 bg-coral-400 text-white rounded-full hover:bg-coral-500 disabled:opacity-50 transition font-medium shadow-md shadow-coral-200">
+            {saving ? '⏳ 保存中...' : isEdit ? '💾 更新日记' : '💕 发布日记'}
           </button>
-          <button type="button" onClick={() => navigate('/admin/articles')} className="px-5 py-2.5 border border-slate-700 rounded-lg text-slate-400 hover:text-slate-200 hover:border-slate-500 transition">取消</button>
+          <button type="button" onClick={() => navigate('/admin/articles')}
+            className="px-5 py-3 border border-warm-200 rounded-full text-brown-400 hover:text-brown-600 hover:border-warm-300 transition">取消</button>
           {isEdit && (
             <button type="button" onClick={handleDelete}
-              className={`px-5 py-2.5 rounded-lg transition ml-auto text-sm ${
-                confirmDelete ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'border border-slate-700 text-slate-500 hover:text-red-400 hover:border-red-500/30'
-              }`}>{confirmDelete ? '⚠️ 确认删除？' : '🗑 删除文章'}</button>
+              className={`px-5 py-3 rounded-full transition ml-auto text-sm ${confirmDelete ? 'bg-red-50 text-red-500 border border-red-200' : 'border border-warm-200 text-brown-300 hover:text-red-400'}`}>
+              {confirmDelete ? '⚠️ 确认删除？' : '🗑 删除'}
+            </button>
           )}
         </div>
-        <p className="text-xs text-slate-600">💡 提示：支持 HTML 直接编辑。快捷键 <kbd className="bg-slate-800 border border-slate-700 px-1.5 py-0.5 rounded text-slate-400 text-xs">Ctrl+S</kbd> 保存</p>
+        <p className="text-xs text-brown-300">💡 <kbd className="bg-warm-100 border border-warm-200 px-1.5 py-0.5 rounded-lg text-brown-400">Ctrl+S</kbd> 保存</p>
       </form>
     </div>
   );

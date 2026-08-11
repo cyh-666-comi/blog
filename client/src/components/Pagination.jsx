@@ -9,15 +9,15 @@ export default function Pagination({ page, totalPages, onPageChange }) {
 
   for (let i = start; i <= end; i++) pages.push(i);
 
-  const btn = "px-3 py-1.5 text-sm border border-slate-700 rounded-lg transition text-slate-400 hover:text-slate-200 hover:border-slate-500 disabled:opacity-30 disabled:cursor-not-allowed";
+  const btn = "w-9 h-9 text-sm rounded-full transition border border-warm-200 text-brown-400 hover:text-coral-500 hover:border-coral-300 disabled:opacity-30 disabled:cursor-not-allowed font-medium";
 
   return (
-    <div className="flex items-center justify-center space-x-1.5 mt-10">
-      <button onClick={() => onPageChange(page - 1)} disabled={page <= 1} className={btn}>上一页</button>
+    <div className="flex items-center justify-center gap-2 mt-10">
+      <button onClick={() => onPageChange(page - 1)} disabled={page <= 1} className={`${btn} w-auto px-4`}>← 上一页</button>
       {start > 1 && (
         <>
           <button onClick={() => onPageChange(1)} className={btn}>1</button>
-          {start > 2 && <span className="px-2 text-slate-600">...</span>}
+          {start > 2 && <span className="text-brown-300 px-1">···</span>}
         </>
       )}
       {pages.map(p => (
@@ -25,7 +25,7 @@ export default function Pagination({ page, totalPages, onPageChange }) {
           key={p}
           onClick={() => onPageChange(p)}
           className={p === page
-            ? 'px-3 py-1.5 text-sm rounded-lg bg-cyan-600 text-white font-medium shadow-lg shadow-cyan-500/20'
+            ? 'w-9 h-9 text-sm rounded-full bg-coral-400 text-white font-medium shadow-md shadow-coral-200'
             : btn}
         >
           {p}
@@ -33,11 +33,11 @@ export default function Pagination({ page, totalPages, onPageChange }) {
       ))}
       {end < totalPages && (
         <>
-          {end < totalPages - 1 && <span className="px-2 text-slate-600">...</span>}
+          {end < totalPages - 1 && <span className="text-brown-300 px-1">···</span>}
           <button onClick={() => onPageChange(totalPages)} className={btn}>{totalPages}</button>
         </>
       )}
-      <button onClick={() => onPageChange(page + 1)} disabled={page >= totalPages} className={btn}>下一页</button>
+      <button onClick={() => onPageChange(page + 1)} disabled={page >= totalPages} className={`${btn} w-auto px-4`}>下一页 →</button>
     </div>
   );
 }
