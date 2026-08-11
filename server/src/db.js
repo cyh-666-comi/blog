@@ -1,16 +1,87 @@
-const Database = require('better-sqlite3');
-const path = require('path');
+const { createClient } = require('@libsql/client');
 
-const dbPath = process.env.DB_PATH || path.join(__dirname, '..', 'blog.db');
-const db = new Database(dbPath);
+// 如果有 Turso URL 就用云数据库，否则用本地 SQLite
+const tursoUrl = process.env.TURSO_DB_URL;
+const tursoToken = process.env.TURSO_AUTH_TOKEN;
 
-// 启用 WAL 模式提升并发性能
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
+let client;
+
+if (tursoUrl && tursoToken) {
+  console.log('☁️  使用 Turso 云数据库');
+  client = createClient({ url: tursoUrl, authToken: tursoToken });
+} else {
+  console.log('💾 使用本地 SQLite');
+  const Database = require('better-sqlite3');
+  const path = require('path');
+  const dbPath = process.env.DB_PATH || path.join(__dirname, '..', 'blog.db');
+  const sqlite = new Database(dbPath);
+  sqlite.pragma('journal_mode = WAL');
+  sqlite.pragma('foreign_keys = ON');
+  client = sqlite;
+  client._local = true;
+}
+
+// 转为 better-sqlite3 兼容接口
+function wrap(client) {
+  if (client._local) {
+    // 本地 SQLite，直接返回原始对象
+    return client;
+  }
+  // Turso: 包装成兼容接口
+  return {
+    _turso: true,
+    _client: client,
+    prepare(sql) {
+      return {
+        async get(...args) {
+          const r = await client.execute({ sql, args });
+          return r.rows[0] || null;
+        },
+        async all(...args) {
+          const r = await client.execute({ sql, args });
+          return r.rows;
+        },
+        async run(...args) {
+          await client.execute({ sql, args });
+          return { lastInsertRowid: null };
+        },
+      };
+    },
+    exec(sql) {
+      // 同步执行多条 SQL（仅用于建表）
+      // Turso 需要逐条执行
+      return {
+        execSync() {
+          const stmts = sql.split(';').filter(s => s.trim());
+          (async () => {
+            for (const s of stmts) {
+              try { await client.execute(s.trim() + ';'); } catch (e) { /* 忽略重复建表错误 */ }
+            }
+          })();
+        },
+      };
+    },
+    async transaction(fn) {
+      // Turso 简单事务：直接执行函数
+      // 注意：这不支持真正的回滚
+      const txnDb = {
+        prepare(sql) {
+          return {
+            run(...args) { return client.execute({ sql, args }); },
+            get(...args) { return client.execute({ sql, args }).then(r => r.rows[0] || null); },
+          };
+        },
+      };
+      return await fn(txnDb);
+    },
+  };
+}
+
+const db = wrap(client);
 
 // 初始化数据库表
-function initDatabase() {
-  db.exec(`
+async function initDatabase() {
+  const createSQL = `
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT NOT NULL UNIQUE,
@@ -75,43 +146,39 @@ function initDatabase() {
       FOREIGN KEY (parent_id) REFERENCES comments(id) ON DELETE CASCADE
     );
 
-    -- 创建索引
-    CREATE INDEX IF NOT EXISTS idx_articles_status ON articles(status);
-    CREATE INDEX IF NOT EXISTS idx_articles_category ON articles(category_id);
-    CREATE INDEX IF NOT EXISTS idx_articles_user ON articles(user_id);
-    CREATE INDEX IF NOT EXISTS idx_articles_created ON articles(created_at DESC);
-    CREATE INDEX IF NOT EXISTS idx_comments_article ON comments(article_id);
-    CREATE INDEX IF NOT EXISTS idx_article_tags_article ON article_tags(article_id);
-    CREATE INDEX IF NOT EXISTS idx_article_tags_tag ON article_tags(tag_id);
-
     CREATE TABLE IF NOT EXISTS messages (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       author_name TEXT NOT NULL DEFAULT '匿名',
       content TEXT NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
+  `;
 
-    CREATE INDEX IF NOT EXISTS idx_messages_created ON messages(created_at DESC);
-  `);
+  if (client._turso) {
+    const stmts = createSQL.split(';').filter(s => s.trim());
+    for (const s of stmts) {
+      try { await client._client.execute(s.trim() + ';'); } catch (e) { /* 忽略 */ }
+    }
+  } else {
+    client.exec(createSQL);
+  }
 
-  // 创建默认用户账号
+  // 创建默认用户
   const bcrypt = require('bcryptjs');
-  const cyhExists = db.prepare('SELECT id FROM users WHERE username = ?').get('cyh');
-  if (!cyhExists) {
-    const hash = bcrypt.hashSync('050728', 10);
-    db.prepare('INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)').run(
-      'cyh', 'cyh@diary.com', hash, 'admin'
-    );
-    console.log('✓ 默认用户已创建: cyh / 050728');
-  }
-  const frzExists = db.prepare('SELECT id FROM users WHERE username = ?').get('frz');
-  if (!frzExists) {
-    const hash = bcrypt.hashSync('040216', 10);
-    db.prepare('INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)').run(
-      'frz', 'frz@diary.com', hash, 'admin'
-    );
-    console.log('✓ 默认用户已创建: frz / 040216');
-  }
+  try {
+    const cyhExists = await db.prepare('SELECT id FROM users WHERE username = ?').get('cyh');
+    if (!cyhExists) {
+      const hash = bcrypt.hashSync('050728', 10);
+      await db.prepare('INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)').run('cyh', 'cyh@diary.com', hash, 'admin');
+      console.log('✓ 用户: cyh / 050728');
+    }
+    const frzExists = await db.prepare('SELECT id FROM users WHERE username = ?').get('frz');
+    if (!frzExists) {
+      const hash = bcrypt.hashSync('040216', 10);
+      await db.prepare('INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)').run('frz', 'frz@diary.com', hash, 'admin');
+      console.log('✓ 用户: frz / 040216');
+    }
+  } catch (e) { console.log('用户初始化:', e.message); }
 }
 
 module.exports = { db, initDatabase };
