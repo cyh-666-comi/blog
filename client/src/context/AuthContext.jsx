@@ -8,44 +8,47 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const savedUser = localStorage.getItem('user');
-    if (token && savedUser) {
-      try {
-        setUser(JSON.parse(savedUser));
-      } catch {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-      }
+    const saved = localStorage.getItem('diary_user');
+    if (saved) {
+      try { setUser(JSON.parse(saved)); } catch { localStorage.removeItem('diary_user'); }
     }
     setLoading(false);
   }, []);
 
+  // 游客登录
+  const loginAsGuest = useCallback((name) => {
+    const guest = { username: name, role: 'guest', isGuest: true };
+    localStorage.setItem('diary_user', JSON.stringify(guest));
+    setUser(guest);
+  }, []);
+
+  // 用户登录
   const login = useCallback(async (username, password) => {
     const res = await authAPI.login({ username, password });
+    const u = { ...res.user, isGuest: false };
+    localStorage.setItem('diary_user', JSON.stringify(u));
     localStorage.setItem('token', res.token);
-    localStorage.setItem('user', JSON.stringify(res.user));
-    setUser(res.user);
-    return res.user;
+    setUser(u);
+    return u;
   }, []);
 
   const logout = useCallback(() => {
+    localStorage.removeItem('diary_user');
     localStorage.removeItem('token');
-    localStorage.removeItem('user');
     setUser(null);
   }, []);
 
-  const isAdmin = user?.role === 'admin';
+  const isUser = user && !user.isGuest;
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAdmin, login, logout, setUser }}>
+    <AuthContext.Provider value={{ user, loading, isUser, login, loginAsGuest, logout }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used within AuthProvider');
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be within AuthProvider');
+  return ctx;
 }

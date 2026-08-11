@@ -83,6 +83,15 @@ function initDatabase() {
     CREATE INDEX IF NOT EXISTS idx_comments_article ON comments(article_id);
     CREATE INDEX IF NOT EXISTS idx_article_tags_article ON article_tags(article_id);
     CREATE INDEX IF NOT EXISTS idx_article_tags_tag ON article_tags(tag_id);
+
+    CREATE TABLE IF NOT EXISTS messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      author_name TEXT NOT NULL DEFAULT '匿名',
+      content TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_messages_created ON messages(created_at DESC);
   `);
 
   // 创建默认用户账号

@@ -119,10 +119,12 @@ function getArticleBySlug(req, res) {
     return res.status(404).json({ message: '文章不存在' });
   }
 
-  // 非管理员只能看已发布的文章
-  const isAdmin = req.user && req.user.role === 'admin';
-  if (article.status !== 'published' && !isAdmin) {
-    return res.status(404).json({ message: '文章不存在' });
+  // 所有登录用户都能查看文章
+  if (article.status !== 'published') {
+    const isAdmin = req.user && req.user.role === 'admin';
+    if (!isAdmin) {
+      return res.status(404).json({ message: '文章不存在' });
+    }
   }
 
   // 增加浏览次数

@@ -88,4 +88,10 @@ export const uploadAPI = {
   },
 };
 
+// Messages API
+export const messagesAPI = {
+  getList: () => apiClient.get('/messages'),
+  create: (data) => apiClient.post('/messages', data),
+};
+
 export default apiClient;

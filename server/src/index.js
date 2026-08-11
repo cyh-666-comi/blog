@@ -30,6 +30,7 @@ app.use('/api/articles', require('./routes/articles'));
 app.use('/api/categories', require('./routes/categories'));
 app.use('/api/tags', require('./routes/tags'));
 app.use('/api/comments', require('./routes/comments'));
+app.use('/api/messages', require('./routes/messages'));
 app.use('/api/upload', require('./routes/upload'));
 
 // 健康检查
