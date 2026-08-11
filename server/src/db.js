@@ -154,10 +154,10 @@ async function initDatabase() {
     );
   `;
 
-  if (client._turso) {
+  if (tursoUrl) {
     const stmts = createSQL.split(';').filter(s => s.trim());
     for (const s of stmts) {
-      try { await client._client.execute(s.trim() + ';'); } catch (e) { /* 忽略 */ }
+      try { await client.execute(s.trim() + ';'); } catch (e) { /* 忽略重复建表 */ }
     }
   } else {
     client.exec(createSQL);
