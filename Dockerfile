@@ -16,6 +16,9 @@ COPY . .
 # 构建前端
 RUN cd client && npm run build
 
+# 创建数据持久化目录
+RUN mkdir -p /app/data
+
 EXPOSE 10000
 
 CMD ["node", "server/src/index.js"]
