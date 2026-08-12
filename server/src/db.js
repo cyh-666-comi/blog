@@ -152,6 +152,8 @@ async function initDatabase() {
       content TEXT NOT NULL,
       bg_color TEXT DEFAULT '#FFF8F0',
       bg_image TEXT DEFAULT '',
+      font_style TEXT DEFAULT '',
+      text_color TEXT DEFAULT '#FFFFFF',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -173,10 +175,14 @@ async function initDatabase() {
     // 迁移：给旧 messages 表加字段
     try { await client.execute("ALTER TABLE messages ADD COLUMN bg_color TEXT DEFAULT '#FFF8F0';"); } catch (e) {}
     try { await client.execute("ALTER TABLE messages ADD COLUMN bg_image TEXT DEFAULT '';"); } catch (e) {}
+    try { await client.execute("ALTER TABLE messages ADD COLUMN font_style TEXT DEFAULT '';"); } catch (e) {}
+    try { await client.execute("ALTER TABLE messages ADD COLUMN text_color TEXT DEFAULT '#FFFFFF';"); } catch (e) {}
   } else {
     client.exec(createSQL);
     try { client.exec("ALTER TABLE messages ADD COLUMN bg_color TEXT DEFAULT '#FFF8F0';"); } catch (e) {}
     try { client.exec("ALTER TABLE messages ADD COLUMN bg_image TEXT DEFAULT '';"); } catch (e) {}
+    try { client.exec("ALTER TABLE messages ADD COLUMN font_style TEXT DEFAULT '';"); } catch (e) {}
+    try { client.exec("ALTER TABLE messages ADD COLUMN text_color TEXT DEFAULT '#FFFFFF';"); } catch (e) {}
   }
 
   // 创建默认用户

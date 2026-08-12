@@ -3,12 +3,36 @@ import { messagesAPI, uploadAPI } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { compressImage } from '../utils/compress';
 
+const FONTS = [
+  { value: '', label: '默认', family: 'inherit' },
+  { value: 'kaiti', label: '楷体', family: '"KaiTi", "STKaiti", serif' },
+  { value: 'songti', label: '宋体', family: '"SimSun", "STSong", serif' },
+  { value: 'yahei', label: '雅黑', family: '"Microsoft YaHei", "PingFang SC", sans-serif' },
+  { value: 'shouxie', label: '手写', family: '"Comic Sans MS", "Segoe Script", cursive' },
+  { value: 'yuanti', label: '圆体', family: '"Yuanti SC", "YouYuan", "幼圆", sans-serif' },
+  { value: 'heiti', label: '黑体', family: '"SimHei", "STHeiti", sans-serif' },
+];
+
+const TEXT_COLORS = [
+  { color: '#FFFFFF', label: '白' },
+  { color: '#FFD1DC', label: '粉' },
+  { color: '#FFE4B5', label: '杏' },
+  { color: '#B0E0E6', label: '蓝' },
+  { color: '#98FB98', label: '绿' },
+  { color: '#FFD700', label: '金' },
+  { color: '#FF7F50', label: '橙' },
+  { color: '#DDA0DD', label: '紫' },
+  { color: '#3E2723', label: '深棕' },
+];
+
 export default function Messages() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [text, setText] = useState('');
   const [author, setAuthor] = useState('');
   const [bgImage, setBgImage] = useState('');
+  const [fontStyle, setFontStyle] = useState('');
+  const [textColor, setTextColor] = useState('#FFFFFF');
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const { user, isUser } = useAuth();
@@ -51,12 +75,16 @@ export default function Messages() {
         author_name: author || '匿名',
         bg_color: '#FFF8F0',
         bg_image: bgImage,
+        font_style: fontStyle,
+        text_color: textColor,
       });
-      setText(''); setBgImage('');
+      setText(''); setBgImage(''); setFontStyle(''); setTextColor('#FFFFFF');
       fetch();
     } catch (err) { alert(err.message); }
     finally { setSubmitting(false); }
   };
+
+  const currentFont = FONTS.find(f => f.value === fontStyle)?.family || 'inherit';
 
   return (
     <div className="w-full">
@@ -82,21 +110,44 @@ export default function Messages() {
           )}
         </div>
 
+        {/* 字体选择 */}
+        <p className="text-xs text-brown-400 mb-2">✍️ 字体：</p>
+        <div className="flex flex-wrap gap-2 mb-3">
+          {FONTS.map(f => (
+            <button key={f.value} type="button"
+              onClick={() => setFontStyle(f.value)}
+              className={`px-3 py-1.5 rounded-full text-sm border transition ${fontStyle === f.value ? 'bg-coral-400 text-white border-coral-400' : 'bg-warm-50 text-brown-500 border-warm-200 hover:border-coral-300'}`}
+              style={{ fontFamily: f.family }}>
+              {f.label}
+            </button>
+          ))}
+        </div>
+
+        {/* 颜色选择 */}
+        <p className="text-xs text-brown-400 mb-2">🎨 文字颜色：</p>
+        <div className="flex flex-wrap gap-2 mb-3">
+          {TEXT_COLORS.map(c => (
+            <button key={c.color} type="button"
+              onClick={() => setTextColor(c.color)}
+              className={`w-8 h-8 rounded-full border-2 transition hover:scale-110 ${textColor === c.color ? 'border-coral-400 scale-110 shadow-md' : 'border-warm-200'}`}
+              style={{ backgroundColor: c.color }} title={c.label} />
+          ))}
+        </div>
+
         {/* 预览 */}
         <div className="relative rounded-2xl overflow-hidden mb-3">
-          {!bgImage && (
+          {!bgImage ? (
             <div className="min-h-[140px] flex items-center justify-center bg-warm-100 text-brown-300 text-sm">
               📸 请先选择一张背景照片
             </div>
-          )}
-          {bgImage && (
+          ) : (
             <>
               <img src={bgImage} alt="背景" className="w-full h-auto block" />
               <div className="absolute inset-0 flex items-center justify-center">
                 <textarea value={text} onChange={e => setText(e.target.value)}
                   placeholder="说点什么..."
                   className="w-full bg-transparent text-lg md:text-2xl text-center placeholder-white/60 focus:outline-none resize-none font-bold px-6"
-                  style={{ color: '#fff', textShadow: '0 2px 6px rgba(0,0,0,0.6)' }}
+                  style={{ color: textColor, textShadow: '0 2px 6px rgba(0,0,0,0.6)', fontFamily: currentFont }}
                   rows={3} />
               </div>
             </>
@@ -119,43 +170,47 @@ export default function Messages() {
         </div>
       ) : (
         <div className="space-y-4">
-          {messages.map((m, i) => (
-            <div key={m.id} className="relative rounded-2xl overflow-hidden shadow-md group w-full">
-              {m.bg_image ? (
-                <>
-                  {/* 完整照片背景 */}
-                  <img src={m.bg_image} alt={m.author_name} className="w-full h-auto block" />
-                  {/* 左上角：名字 + 日期 */}
-                  <div className="absolute top-3 left-4 z-20 flex items-center gap-2">
-                    <span className="font-bold text-sm"
-                      style={{ color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>{m.author_name}</span>
-                    <span className="text-xs"
-                      style={{ color: 'rgba(255,255,255,0.75)', textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}>
-                      {new Date(m.created_at).toLocaleDateString('zh-CN')}
-                    </span>
-                  </div>
-                  {/* 右下角删除 */}
-                  {isUser && (
-                    <button onClick={() => handleDelete(m.id)}
-                      className="absolute bottom-3 right-4 z-20 text-xs text-white/50 hover:text-red-300 opacity-0 group-hover:opacity-100 transition">✕</button>
-                  )}
-                  {/* 正文 */}
-                  <div className="absolute inset-0 flex items-center justify-center p-6">
-                    <p className="text-lg md:text-2xl lg:text-3xl leading-relaxed whitespace-pre-wrap font-bold text-center max-w-2xl"
-                      style={{ color: '#fff', textShadow: '0 2px 8px rgba(0,0,0,0.6), 0 1px 3px rgba(0,0,0,0.4)' }}>
+          {messages.map((m, i) => {
+            const font = FONTS.find(f => f.value === m.font_style)?.family || 'inherit';
+            return (
+              <div key={m.id} className="relative rounded-2xl overflow-hidden shadow-md group w-full">
+                {m.bg_image ? (
+                  <>
+                    <img src={m.bg_image} alt={m.author_name} className="w-full h-auto block" />
+                    <div className="absolute top-3 left-4 z-20 flex items-center gap-2">
+                      <span className="font-bold text-sm"
+                        style={{ color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>{m.author_name}</span>
+                      <span className="text-xs"
+                        style={{ color: 'rgba(255,255,255,0.75)', textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}>
+                        {new Date(m.created_at).toLocaleDateString('zh-CN')}
+                      </span>
+                    </div>
+                    {isUser && (
+                      <button onClick={() => handleDelete(m.id)}
+                        className="absolute bottom-3 right-4 z-20 text-xs text-white/50 hover:text-red-300 opacity-0 group-hover:opacity-100 transition">✕</button>
+                    )}
+                    <div className="absolute inset-0 flex items-center justify-center p-6">
+                      <p className="text-lg md:text-2xl lg:text-3xl leading-relaxed whitespace-pre-wrap font-bold text-center max-w-2xl"
+                        style={{
+                          color: m.text_color || '#FFFFFF',
+                          textShadow: '0 2px 8px rgba(0,0,0,0.6), 0 1px 3px rgba(0,0,0,0.4)',
+                          fontFamily: font,
+                        }}>
+                        {m.content}
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <div className="min-h-[200px] flex items-center justify-center p-6"
+                    style={{ backgroundColor: m.bg_color || '#FFF8F0' }}>
+                    <p className="text-lg text-brown-700 text-center whitespace-pre-wrap" style={{ fontFamily: font, color: m.text_color === '#FFFFFF' ? '#5D4037' : m.text_color }}>
                       {m.content}
                     </p>
                   </div>
-                </>
-              ) : (
-                /* 无背景时用纯色 */
-                <div className="min-h-[200px] flex items-center justify-center p-6"
-                  style={{ backgroundColor: m.bg_color || '#FFF8F0' }}>
-                  <p className="text-lg text-brown-700 text-center whitespace-pre-wrap">{m.content}</p>
-                </div>
-              )}
-            </div>
-          ))}
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
