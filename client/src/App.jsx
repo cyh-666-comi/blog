@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Home from './pages/Home';
 import DiaryDetail from './pages/DiaryDetail';
 import Messages from './pages/Messages';
+import Album from './pages/Album';
 import DiaryEditor from './pages/admin/DiaryEditor';
 import DiaryList from './pages/admin/DiaryList';
 
@@ -16,6 +17,7 @@ export default function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/diary/:slug" element={<DiaryDetail />} />
         <Route path="/messages" element={<Messages />} />
+        <Route path="/album" element={<Album />} />
         <Route path="/admin/diaries" element={<DiaryList />} />
         <Route path="/admin/diaries/new" element={<DiaryEditor />} />
         <Route path="/admin/diaries/:id/edit" element={<DiaryEditor />} />

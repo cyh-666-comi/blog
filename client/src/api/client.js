@@ -95,4 +95,11 @@ export const messagesAPI = {
   delete: (id) => apiClient.delete(`/messages/${id}`),
 };
 
+// Photos API
+export const photosAPI = {
+  getList: () => apiClient.get('/photos'),
+  create: (data) => apiClient.post('/photos', data),
+  delete: (id) => apiClient.delete(`/photos/${id}`),
+};
+
 export default apiClient;

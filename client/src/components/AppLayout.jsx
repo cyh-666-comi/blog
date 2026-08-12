@@ -19,6 +19,7 @@ export default function AppLayout() {
             </Link>
             <span className="text-warm-300 hidden sm:inline">|</span>
             <Link to="/home" className="text-sm text-brown-500 hover:text-coral-500 transition font-medium">📖 日记</Link>
+            <Link to="/album" className="text-sm text-brown-500 hover:text-coral-500 transition font-medium">📸 相册</Link>
             <Link to="/messages" className="text-sm text-brown-500 hover:text-coral-500 transition font-medium">💬 留言</Link>
             {isUser && (
               <>
