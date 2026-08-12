@@ -59,7 +59,7 @@ export default function Messages() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="w-full">
       <div className="text-center mb-8">
         <p className="text-5xl mb-2 animate-wobble inline-block">💬</p>
         <h1 className="text-xl font-bold text-brown-800">留言板</h1>
@@ -119,7 +119,7 @@ export default function Messages() {
         <div className="space-y-4">
           {messages.map((m, i) => (
             <div key={m.id}
-              className="relative rounded-2xl overflow-hidden shadow-md group min-h-[220px] flex items-center justify-center p-6"
+              className="relative rounded-2xl overflow-hidden shadow-md group min-h-[260px] flex items-center justify-center p-6 w-full"
               style={{
                 backgroundImage: m.bg_image ? `url(${m.bg_image})` : 'none',
                 backgroundColor: m.bg_image ? 'transparent' : (m.bg_color || '#FFF8F0'),

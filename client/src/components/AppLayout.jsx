@@ -38,7 +38,7 @@ export default function AppLayout() {
         </div>
       </nav>
 
-      <main className="max-w-4xl mx-auto px-4 py-6 relative">
+      <main className="max-w-6xl mx-auto px-4 py-6 relative">
         <Outlet />
       </main>
 
