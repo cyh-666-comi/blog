@@ -59,7 +59,7 @@ export default function Messages() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-5xl mx-auto">
       <div className="text-center mb-8">
         <p className="text-5xl mb-2 animate-wobble inline-block">💬</p>
         <h1 className="text-xl font-bold text-brown-800">留言板</h1>
@@ -121,40 +121,55 @@ export default function Messages() {
         <div className="space-y-4">
           {messages.map((m, i) => (
             <div key={m.id}
-              className="relative rounded-2xl overflow-hidden shadow-md group min-h-[160px] flex flex-col justify-end"
+              className="relative rounded-2xl overflow-hidden shadow-md group min-h-[180px]"
               style={{
                 backgroundImage: m.bg_image ? `url(${m.bg_image})` : 'none',
                 backgroundColor: m.bg_image ? 'transparent' : (m.bg_color || '#FFF8F0'),
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
               }}>
-              {/* 文字区域：半透明底 */}
-              <div className="relative z-10 p-5" style={{
-                background: m.bg_image
-                  ? 'linear-gradient(to top, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.05) 80%, transparent 100%)'
-                  : 'transparent',
-              }}>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-sm"
-                      style={{ color: m.bg_image ? '#fff' : '#FF7F50' }}>{m.author_name}</span>
-                    <span className="text-xs"
-                      style={{ color: m.bg_image ? 'rgba(255,255,255,0.7)' : '#A1887F' }}>
-                      {new Date(m.created_at).toLocaleString('zh-CN')}
-                    </span>
-                  </div>
-                  {isUser && (
-                    <button onClick={() => handleDelete(m.id)}
-                      className="text-xs opacity-0 group-hover:opacity-100 transition"
-                      style={{ color: m.bg_image ? 'rgba(255,255,255,0.6)' : '#A1887F' }}
-                    >✕</button>
-                  )}
-                </div>
-                <p className="text-sm leading-relaxed whitespace-pre-wrap font-medium"
-                  style={{ color: m.bg_image ? '#fff' : '#5D4037', textShadow: m.bg_image ? '0 1px 3px rgba(0,0,0,0.4)' : 'none' }}>
-                  {m.content}
-                </p>
+              {/* 左上角：名字 + 日期 */}
+              <div className="absolute top-4 left-5 z-20 flex items-center gap-2">
+                <span className="font-bold text-sm px-2.5 py-1 rounded-full"
+                  style={{
+                    color: '#fff',
+                    backgroundColor: 'rgba(0,0,0,0.35)',
+                    backdropFilter: 'blur(4px)',
+                  }}>{m.author_name}</span>
+                <span className="text-xs px-2 py-0.5 rounded-full"
+                  style={{
+                    color: '#fff',
+                    backgroundColor: 'rgba(0,0,0,0.2)',
+                    backdropFilter: 'blur(4px)',
+                  }}>
+                  {new Date(m.created_at).toLocaleDateString('zh-CN')}
+                </span>
+                {isUser && (
+                  <button onClick={() => handleDelete(m.id)}
+                    className="text-xs text-white/60 hover:text-red-300 opacity-0 group-hover:opacity-100 transition px-2 py-0.5 rounded-full"
+                    style={{ backgroundColor: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(4px)' }}>✕</button>
+                )}
               </div>
+
+              {/* 正文：居中显示，毛玻璃卡片 */}
+              <div className="relative z-10 flex items-center justify-center min-h-[180px] p-8">
+                <div className="max-w-xl text-center px-6 py-4 rounded-2xl"
+                  style={{
+                    backgroundColor: m.bg_image ? 'rgba(255,255,255,0.85)' : 'transparent',
+                    backdropFilter: m.bg_image ? 'blur(8px)' : 'none',
+                  }}>
+                  <p className="text-base leading-relaxed whitespace-pre-wrap font-medium text-brown-800">
+                    {m.content}
+                  </p>
+                </div>
+              </div>
+
+              {/* 无背景时的装饰 */}
+              {!m.bg_image && (
+                <div className="absolute -top-1 -right-1 opacity-15 text-2xl select-none pointer-events-none">
+                  {i % 4 === 0 ? '🌸' : i % 4 === 1 ? '✨' : i % 4 === 2 ? '💕' : '🐾'}
+                </div>
+              )}
             </div>
           ))}
         </div>
