@@ -150,6 +150,8 @@ async function initDatabase() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       author_name TEXT NOT NULL DEFAULT '匿名',
       content TEXT NOT NULL,
+      bg_color TEXT DEFAULT '#FFF8F0',
+      bg_image TEXT DEFAULT '',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -168,8 +170,13 @@ async function initDatabase() {
     for (const s of stmts) {
       try { await client.execute(s.trim() + ';'); } catch (e) { /* 忽略重复建表 */ }
     }
+    // 迁移：给旧 messages 表加字段
+    try { await client.execute("ALTER TABLE messages ADD COLUMN bg_color TEXT DEFAULT '#FFF8F0';"); } catch (e) {}
+    try { await client.execute("ALTER TABLE messages ADD COLUMN bg_image TEXT DEFAULT '';"); } catch (e) {}
   } else {
     client.exec(createSQL);
+    try { client.exec("ALTER TABLE messages ADD COLUMN bg_color TEXT DEFAULT '#FFF8F0';"); } catch (e) {}
+    try { client.exec("ALTER TABLE messages ADD COLUMN bg_image TEXT DEFAULT '';"); } catch (e) {}
   }
 
   // 创建默认用户
