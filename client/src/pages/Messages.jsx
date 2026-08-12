@@ -95,7 +95,7 @@ export default function Messages() {
               <div className="absolute inset-0 flex items-center justify-center">
                 <textarea value={text} onChange={e => setText(e.target.value)}
                   placeholder="说点什么..."
-                  className="w-full bg-transparent text-lg text-center placeholder-white/60 focus:outline-none resize-none font-bold px-6"
+                  className="w-full bg-transparent text-lg md:text-2xl text-center placeholder-white/60 focus:outline-none resize-none font-bold px-6"
                   style={{ color: '#fff', textShadow: '0 2px 6px rgba(0,0,0,0.6)' }}
                   rows={3} />
               </div>
@@ -141,7 +141,7 @@ export default function Messages() {
                   )}
                   {/* 正文 */}
                   <div className="absolute inset-0 flex items-center justify-center p-6">
-                    <p className="text-lg leading-relaxed whitespace-pre-wrap font-bold text-center max-w-lg"
+                    <p className="text-lg md:text-2xl lg:text-3xl leading-relaxed whitespace-pre-wrap font-bold text-center max-w-2xl"
                       style={{ color: '#fff', textShadow: '0 2px 8px rgba(0,0,0,0.6), 0 1px 3px rgba(0,0,0,0.4)' }}>
                       {m.content}
                     </p>
