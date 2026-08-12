@@ -21,7 +21,10 @@ export default function AppLayout() {
             <Link to="/home" className="text-sm text-brown-500 hover:text-coral-500 transition font-medium">📖 日记</Link>
             <Link to="/messages" className="text-sm text-brown-500 hover:text-coral-500 transition font-medium">💬 留言</Link>
             {isUser && (
-              <Link to="/admin/diaries/new" className="text-sm bg-coral-400 text-white px-3 py-1 rounded-full hover:bg-coral-500 transition shadow-sm">✍️ 写日记</Link>
+              <>
+                <Link to="/admin/diaries/new" className="text-sm bg-coral-400 text-white px-3 py-1 rounded-full hover:bg-coral-500 transition shadow-sm">✍️ 写日记</Link>
+                <Link to="/admin/diaries" className="text-sm text-brown-400 hover:text-coral-500 transition font-medium">📋 管理</Link>
+              </>
             )}
           </div>
           <div className="flex items-center gap-3">

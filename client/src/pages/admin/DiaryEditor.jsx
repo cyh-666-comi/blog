@@ -68,7 +68,7 @@ export default function DiaryEditor() {
   const handleUpload = async (e) => {
     const f = e.target.files?.[0]; if (!f) return;
     setUploading(true);
-    try { const r = await uploadAPI.uploadImage(f); const url = r.url.startsWith('/') ? r.url : `/${r.url}`; insertAtCursor(`<img src="${url}" alt="${f.name}" />`); }
+    try { const r = await uploadAPI.uploadImage(f); const url = (r.url.startsWith('/') || r.url.startsWith('data:')) ? r.url : `/${r.url}`; insertAtCursor(`<img src="${url}" alt="${f.name}" />`); }
     catch (err) { alert('上传失败: ' + err.message); }
     finally { setUploading(false); }
   };
