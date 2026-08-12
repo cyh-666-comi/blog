@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { photosAPI, uploadAPI } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { compressImage } from '../utils/compress';
 
 export default function Album() {
   const [photos, setPhotos] = useState([]);
@@ -22,7 +23,8 @@ export default function Album() {
     const f = e.target.files?.[0]; if (!f) return;
     setUploading(true);
     try {
-      const r = await uploadAPI.uploadImage(f);
+      const compressed = await compressImage(f);
+      const r = await uploadAPI.uploadImage(compressed);
       const url = (r.url.startsWith('/') || r.url.startsWith('data:')) ? r.url : `/${r.url}`;
       await photosAPI.create({ url, caption: '' });
       fetch();

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { articlesAPI, uploadAPI } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
+import { compressImage } from '../../utils/compress';
 
 export default function DiaryEditor() {
   const { id } = useParams();
@@ -40,7 +41,8 @@ export default function DiaryEditor() {
     const f = e.target.files?.[0]; if (!f) return;
     setUploading(true);
     try {
-      const r = await uploadAPI.uploadImage(f);
+      const compressed = await compressImage(f);
+      const r = await uploadAPI.uploadImage(compressed);
       const url = (r.url.startsWith('/') || r.url.startsWith('data:')) ? r.url : `/${r.url}`;
       // 直接在编辑器中插入 img 元素
       const editor = editorRef.current;
