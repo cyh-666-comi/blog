@@ -83,24 +83,22 @@ export default function Messages() {
         </div>
 
         {/* 预览 */}
-        <div className="relative rounded-2xl overflow-hidden mb-3 min-h-[120px]" style={{
+        <div className="relative rounded-2xl overflow-hidden mb-3 min-h-[140px] flex items-center justify-center" style={{
           backgroundImage: bgImage ? `url(${bgImage})` : 'none',
           backgroundColor: bgImage ? 'transparent' : '#FFF5EC',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}>
           {!bgImage && (
-            <div className="absolute inset-0 flex items-center justify-center text-brown-300 text-sm">
-              📸 请先选择一张背景照片
-            </div>
+            <p className="text-brown-300 text-sm">📸 请先选择一张背景照片</p>
           )}
-          <div className="relative z-10 p-4" style={{ background: bgImage ? 'linear-gradient(to bottom, rgba(255,255,255,0.15), rgba(255,255,255,0.3))' : 'transparent' }}>
+          {bgImage && (
             <textarea value={text} onChange={e => setText(e.target.value)}
               placeholder="说点什么..."
-              className="w-full bg-transparent text-sm placeholder-brown-400 focus:outline-none resize-none"
-              style={{ color: bgImage ? '#3E2723' : '#5D4037', textShadow: bgImage ? '0 1px 2px rgba(255,255,255,0.5)' : 'none' }}
+              className="w-full bg-transparent text-lg text-center placeholder-white/60 focus:outline-none resize-none font-bold px-6"
+              style={{ color: '#fff', textShadow: '0 2px 6px rgba(0,0,0,0.6)' }}
               rows={3} />
-          </div>
+          )}
         </div>
 
         <button type="submit" disabled={submitting || !text.trim()}
@@ -121,7 +119,7 @@ export default function Messages() {
         <div className="space-y-4">
           {messages.map((m, i) => (
             <div key={m.id}
-              className="relative rounded-2xl overflow-hidden shadow-md group min-h-[180px]"
+              className="relative rounded-2xl overflow-hidden shadow-md group min-h-[220px] flex items-center justify-center p-6"
               style={{
                 backgroundImage: m.bg_image ? `url(${m.bg_image})` : 'none',
                 backgroundColor: m.bg_image ? 'transparent' : (m.bg_color || '#FFF8F0'),
@@ -129,47 +127,26 @@ export default function Messages() {
                 backgroundPosition: 'center',
               }}>
               {/* 左上角：名字 + 日期 */}
-              <div className="absolute top-4 left-5 z-20 flex items-center gap-2">
-                <span className="font-bold text-sm px-2.5 py-1 rounded-full"
-                  style={{
-                    color: '#fff',
-                    backgroundColor: 'rgba(0,0,0,0.35)',
-                    backdropFilter: 'blur(4px)',
-                  }}>{m.author_name}</span>
-                <span className="text-xs px-2 py-0.5 rounded-full"
-                  style={{
-                    color: '#fff',
-                    backgroundColor: 'rgba(0,0,0,0.2)',
-                    backdropFilter: 'blur(4px)',
-                  }}>
+              <div className="absolute top-3 left-4 z-20 flex items-center gap-2">
+                <span className="font-bold text-sm"
+                  style={{ color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>{m.author_name}</span>
+                <span className="text-xs"
+                  style={{ color: 'rgba(255,255,255,0.75)', textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}>
                   {new Date(m.created_at).toLocaleDateString('zh-CN')}
                 </span>
-                {isUser && (
-                  <button onClick={() => handleDelete(m.id)}
-                    className="text-xs text-white/60 hover:text-red-300 opacity-0 group-hover:opacity-100 transition px-2 py-0.5 rounded-full"
-                    style={{ backgroundColor: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(4px)' }}>✕</button>
-                )}
               </div>
 
-              {/* 正文：居中显示，毛玻璃卡片 */}
-              <div className="relative z-10 flex items-center justify-center min-h-[180px] p-8">
-                <div className="max-w-xl text-center px-6 py-4 rounded-2xl"
-                  style={{
-                    backgroundColor: m.bg_image ? 'rgba(255,255,255,0.85)' : 'transparent',
-                    backdropFilter: m.bg_image ? 'blur(8px)' : 'none',
-                  }}>
-                  <p className="text-base leading-relaxed whitespace-pre-wrap font-medium text-brown-800">
-                    {m.content}
-                  </p>
-                </div>
-              </div>
-
-              {/* 无背景时的装饰 */}
-              {!m.bg_image && (
-                <div className="absolute -top-1 -right-1 opacity-15 text-2xl select-none pointer-events-none">
-                  {i % 4 === 0 ? '🌸' : i % 4 === 1 ? '✨' : i % 4 === 2 ? '💕' : '🐾'}
-                </div>
+              {/* 右下角删除 */}
+              {isUser && (
+                <button onClick={() => handleDelete(m.id)}
+                  className="absolute bottom-3 right-4 z-20 text-xs text-white/50 hover:text-red-300 opacity-0 group-hover:opacity-100 transition">✕</button>
               )}
+
+              {/* 正文 */}
+              <p className="relative z-10 text-lg leading-relaxed whitespace-pre-wrap font-bold text-center max-w-lg"
+                style={{ color: '#fff', textShadow: '0 2px 8px rgba(0,0,0,0.6), 0 1px 3px rgba(0,0,0,0.4)' }}>
+                {m.content}
+              </p>
             </div>
           ))}
         </div>
