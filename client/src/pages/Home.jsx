@@ -32,6 +32,35 @@ export default function Home() {
         <div className="cute-divider">🐾 💕 🐾</div>
       </div>
 
+      {/* 倒计时卡片 */}
+      <div className="mb-8 bg-white rounded-3xl shadow-card border border-warm-200 p-6 text-center">
+        <p className="text-brown-400 text-sm mb-1">💕 我们已经在一起</p>
+        <p className="text-5xl font-bold text-coral-400 mb-1">
+          {(() => {
+            const start = new Date('2024-03-30');
+            const now = new Date();
+            const days = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+            return days;
+          })()}
+        </p>
+        <p className="text-3xl font-bold text-brown-300">天</p>
+        <div className="mt-3 flex justify-center gap-3 text-xs text-brown-300">
+          <span>📅 2024年3月30日</span>
+          <span>💕</span>
+          <span>
+            {(() => {
+              const start = new Date('2024-03-30');
+              const now = new Date();
+              const days = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+              const years = Math.floor(days / 365);
+              const remain = days % 365;
+              const months = Math.floor(remain / 30);
+              return `${years}年${months}个月`;
+            })()}
+          </span>
+        </div>
+      </div>
+
       {articles.length === 0 ? (
         <div className="text-center py-20 text-brown-400 bg-white rounded-3xl shadow-card border border-warm-200">
           <p className="text-6xl mb-4 animate-wobble inline-block">📖</p>
