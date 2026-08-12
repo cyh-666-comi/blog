@@ -42,16 +42,23 @@ export default function DiaryEditor() {
     try {
       const r = await uploadAPI.uploadImage(f);
       const url = (r.url.startsWith('/') || r.url.startsWith('data:')) ? r.url : `/${r.url}`;
-      exec('insertImage', url);
-      // 让图片可调整大小
-      const imgs = editorRef.current?.querySelectorAll('img');
-      if (imgs?.length) {
-        const last = imgs[imgs.length - 1];
-        last.style.maxWidth = '100%';
-        last.style.borderRadius = '12px';
-        last.style.margin = '12px 0';
+      // 直接在编辑器中插入 img 元素
+      const editor = editorRef.current;
+      if (editor) {
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = f.name;
+        img.style.maxWidth = '100%';
+        img.style.borderRadius = '12px';
+        img.style.margin = '12px 0';
+        img.style.display = 'block';
+        editor.appendChild(img);
+        // 在图片后加个换行，方便继续打字
+        const br = document.createElement('br');
+        editor.appendChild(br);
+        editor.focus();
       }
-    } catch (err) { alert('上传失败: ' + err.message); }
+    } catch (err) { alert('上传失败: ' + (err.response?.data?.message || err.message)); }
     finally { setUploading(false); }
   };
 
