@@ -83,21 +83,23 @@ export default function Messages() {
         </div>
 
         {/* 预览 */}
-        <div className="relative rounded-2xl overflow-hidden mb-3 min-h-[140px] flex items-center justify-center" style={{
-          backgroundImage: bgImage ? `url(${bgImage})` : 'none',
-          backgroundColor: bgImage ? 'transparent' : '#FFF5EC',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}>
+        <div className="relative rounded-2xl overflow-hidden mb-3">
           {!bgImage && (
-            <p className="text-brown-300 text-sm">📸 请先选择一张背景照片</p>
+            <div className="min-h-[140px] flex items-center justify-center bg-warm-100 text-brown-300 text-sm">
+              📸 请先选择一张背景照片
+            </div>
           )}
           {bgImage && (
-            <textarea value={text} onChange={e => setText(e.target.value)}
-              placeholder="说点什么..."
-              className="w-full bg-transparent text-lg text-center placeholder-white/60 focus:outline-none resize-none font-bold px-6"
-              style={{ color: '#fff', textShadow: '0 2px 6px rgba(0,0,0,0.6)' }}
-              rows={3} />
+            <>
+              <img src={bgImage} alt="背景" className="w-full h-auto block" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <textarea value={text} onChange={e => setText(e.target.value)}
+                  placeholder="说点什么..."
+                  className="w-full bg-transparent text-lg text-center placeholder-white/60 focus:outline-none resize-none font-bold px-6"
+                  style={{ color: '#fff', textShadow: '0 2px 6px rgba(0,0,0,0.6)' }}
+                  rows={3} />
+              </div>
+            </>
           )}
         </div>
 
@@ -118,35 +120,40 @@ export default function Messages() {
       ) : (
         <div className="space-y-4">
           {messages.map((m, i) => (
-            <div key={m.id}
-              className="relative rounded-2xl overflow-hidden shadow-md group min-h-[260px] flex items-center justify-center p-6 w-full"
-              style={{
-                backgroundImage: m.bg_image ? `url(${m.bg_image})` : 'none',
-                backgroundColor: m.bg_image ? 'transparent' : (m.bg_color || '#FFF8F0'),
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-              }}>
-              {/* 左上角：名字 + 日期 */}
-              <div className="absolute top-3 left-4 z-20 flex items-center gap-2">
-                <span className="font-bold text-sm"
-                  style={{ color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>{m.author_name}</span>
-                <span className="text-xs"
-                  style={{ color: 'rgba(255,255,255,0.75)', textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}>
-                  {new Date(m.created_at).toLocaleDateString('zh-CN')}
-                </span>
-              </div>
-
-              {/* 右下角删除 */}
-              {isUser && (
-                <button onClick={() => handleDelete(m.id)}
-                  className="absolute bottom-3 right-4 z-20 text-xs text-white/50 hover:text-red-300 opacity-0 group-hover:opacity-100 transition">✕</button>
+            <div key={m.id} className="relative rounded-2xl overflow-hidden shadow-md group w-full">
+              {m.bg_image ? (
+                <>
+                  {/* 完整照片背景 */}
+                  <img src={m.bg_image} alt={m.author_name} className="w-full h-auto block" />
+                  {/* 左上角：名字 + 日期 */}
+                  <div className="absolute top-3 left-4 z-20 flex items-center gap-2">
+                    <span className="font-bold text-sm"
+                      style={{ color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>{m.author_name}</span>
+                    <span className="text-xs"
+                      style={{ color: 'rgba(255,255,255,0.75)', textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}>
+                      {new Date(m.created_at).toLocaleDateString('zh-CN')}
+                    </span>
+                  </div>
+                  {/* 右下角删除 */}
+                  {isUser && (
+                    <button onClick={() => handleDelete(m.id)}
+                      className="absolute bottom-3 right-4 z-20 text-xs text-white/50 hover:text-red-300 opacity-0 group-hover:opacity-100 transition">✕</button>
+                  )}
+                  {/* 正文 */}
+                  <div className="absolute inset-0 flex items-center justify-center p-6">
+                    <p className="text-lg leading-relaxed whitespace-pre-wrap font-bold text-center max-w-lg"
+                      style={{ color: '#fff', textShadow: '0 2px 8px rgba(0,0,0,0.6), 0 1px 3px rgba(0,0,0,0.4)' }}>
+                      {m.content}
+                    </p>
+                  </div>
+                </>
+              ) : (
+                /* 无背景时用纯色 */
+                <div className="min-h-[200px] flex items-center justify-center p-6"
+                  style={{ backgroundColor: m.bg_color || '#FFF8F0' }}>
+                  <p className="text-lg text-brown-700 text-center whitespace-pre-wrap">{m.content}</p>
+                </div>
               )}
-
-              {/* 正文 */}
-              <p className="relative z-10 text-lg leading-relaxed whitespace-pre-wrap font-bold text-center max-w-lg"
-                style={{ color: '#fff', textShadow: '0 2px 8px rgba(0,0,0,0.6), 0 1px 3px rgba(0,0,0,0.4)' }}>
-                {m.content}
-              </p>
             </div>
           ))}
         </div>
