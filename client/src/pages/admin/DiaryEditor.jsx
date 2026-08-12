@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { articlesAPI, uploadAPI } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
@@ -7,46 +7,62 @@ export default function DiaryEditor() {
   const { id } = useParams();
   const isEdit = !!id;
   const navigate = useNavigate();
+  const editorRef = useRef(null);
   const { isUser } = useAuth();
 
   const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
   const [coverImage, setCoverImage] = useState('');
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     if (!isUser) navigate('/home');
     if (isEdit) {
       articlesAPI.getById(id).then(a => {
-        setTitle(a.title || ''); setContent(a.content || ''); setCoverImage(a.cover_image || '');
+        setTitle(a.title || '');
+        setCoverImage(a.cover_image || '');
+        if (editorRef.current) editorRef.current.innerHTML = a.content || '';
       }).catch(err => setError('加载失败: ' + err.message));
     }
   }, [id, isEdit]);
 
-  const handleUpload = async (e) => {
+  // 工具栏命令
+  const exec = (cmd, val) => {
+    document.execCommand(cmd, false, val);
+    editorRef.current?.focus();
+  };
+
+  // 插入图片
+  const insertImage = async (e) => {
     const f = e.target.files?.[0]; if (!f) return;
     setUploading(true);
     try {
       const r = await uploadAPI.uploadImage(f);
       const url = (r.url.startsWith('/') || r.url.startsWith('data:')) ? r.url : `/${r.url}`;
-      setContent(prev => prev + `<img src="${url}" alt="${f.name}" /><br/>`);
+      exec('insertImage', url);
+      // 让图片可调整大小
+      const imgs = editorRef.current?.querySelectorAll('img');
+      if (imgs?.length) {
+        const last = imgs[imgs.length - 1];
+        last.style.maxWidth = '100%';
+        last.style.borderRadius = '12px';
+        last.style.margin = '12px 0';
+      }
     } catch (err) { alert('上传失败: ' + err.message); }
     finally { setUploading(false); }
   };
 
-  const handleSubmit = async (e) => {
-    e?.preventDefault();
+  const handleSubmit = async () => {
     if (!title.trim()) { setError('请输入标题'); return; }
     setSaving(true); setError(''); setSuccess('');
+    const content = editorRef.current?.innerHTML || '';
     try {
       const data = { title, content, cover_image: coverImage, status: 'published' };
       if (isEdit) { await articlesAPI.update(id, data); setSuccess('日记已更新！💕'); }
-      else { await articlesAPI.create(data); setSuccess('日记已发布！💕'); navigate('/home'); return; }
+      else { await articlesAPI.create(data); setSuccess('日记已发布！'); navigate('/home'); return; }
     } catch (err) { setError(err.message); }
     finally { setSaving(false); }
   };
@@ -57,7 +73,13 @@ export default function DiaryEditor() {
     catch (err) { alert(err.message); }
   };
 
-  const inp = "w-full px-4 py-3 bg-white border border-warm-200 rounded-2xl text-brown-700 placeholder-brown-300 focus:outline-none focus:border-coral-300 transition";
+  useEffect(() => {
+    const h = (e) => { if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); handleSubmit(); } };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [title, coverImage, isEdit, id]);
+
+  const btn = "p-2 text-brown-500 hover:bg-coral-50 hover:text-coral-500 rounded-xl transition text-sm font-medium min-w-[36px]";
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -78,42 +100,56 @@ export default function DiaryEditor() {
         {/* 封面图 */}
         <div className="flex gap-2">
           <input type="text" value={coverImage} onChange={e => setCoverImage(e.target.value)}
-            className={inp + " flex-1"} placeholder="封面图片链接（可选）" />
-          <label className={`px-4 py-3 rounded-2xl text-sm cursor-pointer transition font-medium ${uploading ? 'bg-warm-200 text-brown-400' : 'bg-coral-400 text-white hover:bg-coral-500 shadow-md shadow-coral-200'}`}>
-            {uploading ? '⏳' : '📷'}
-            <input type="file" accept="image/*" onChange={handleUpload} className="hidden" disabled={uploading} />
-          </label>
+            className="flex-1 px-4 py-3 bg-white border border-warm-200 rounded-2xl text-brown-700 placeholder-brown-300 focus:outline-none focus:border-coral-300 transition text-sm"
+            placeholder="封面图片链接（可选）" />
         </div>
         {coverImage && <img src={coverImage} alt="封面" className="w-full h-48 object-cover rounded-2xl border border-warm-200" />}
 
-        {/* 切换按钮 */}
-        <div className="flex items-center gap-2">
-          <button type="button" onClick={() => setEditing(false)}
-            className={`text-xs px-4 py-1.5 rounded-full transition ${!editing ? 'bg-coral-400 text-white' : 'bg-warm-100 text-brown-400'}`}>👁 预览</button>
-          <button type="button" onClick={() => setEditing(true)}
-            className={`text-xs px-4 py-1.5 rounded-full transition ${editing ? 'bg-coral-400 text-white' : 'bg-warm-100 text-brown-400'}`}>✏️ 编辑</button>
-          <span className="flex-1" />
-          <label className="text-xs text-brown-400 hover:text-coral-500 transition cursor-pointer">
-            📷 插入图片
-            <input type="file" accept="image/*" onChange={handleUpload} className="hidden" disabled={uploading} />
+        {/* 工具栏 */}
+        <div className="flex items-center gap-1 bg-white border border-warm-200 rounded-2xl px-2 py-1 shadow-card flex-wrap">
+          <button onClick={() => exec('bold')} className={btn} title="加粗"><b>B</b></button>
+          <button onClick={() => exec('italic')} className={btn} title="斜体"><i>I</i></button>
+          <button onClick={() => exec('underline')} className={btn} title="下划线"><u>U</u></button>
+          <span className="text-warm-300 mx-1">|</span>
+          <button onClick={() => exec('formatBlock', '<h2>')} className={btn} title="大标题">H</button>
+          <button onClick={() => exec('formatBlock', '<h3>')} className={btn + " text-xs"} title="小标题">h</button>
+          <button onClick={() => exec('formatBlock', '<p>')} className={btn + " text-xs"} title="正文">P</button>
+          <span className="text-warm-300 mx-1">|</span>
+          <button onClick={() => exec('insertUnorderedList')} className={btn} title="列表">•</button>
+          <button onClick={() => exec('insertOrderedList')} className={btn} title="编号">1.</button>
+          <span className="text-warm-300 mx-1">|</span>
+          <label className={`${btn} cursor-pointer ${uploading ? 'opacity-40' : ''}`} title="插入图片">
+            📷<input type="file" accept="image/*" onChange={insertImage} className="hidden" disabled={uploading} />
           </label>
+          <button onClick={() => exec('removeFormat')} className={btn + " text-xs"} title="清除格式">✕</button>
         </div>
 
-        {/* 内容区 */}
-        {!editing && content ? (
-          <div className="article-content bg-white border border-warm-200 rounded-2xl p-5 min-h-[200px] shadow-card"
-            dangerouslySetInnerHTML={{ __html: content }} />
-        ) : !editing && !content ? (
-          <div className="bg-white border border-warm-200 rounded-2xl p-5 min-h-[200px] shadow-card flex items-center justify-center text-brown-300">
-            <p>点击"✏️ 编辑"开始写日记~</p>
-          </div>
-        ) : (
-          <textarea value={content} onChange={e => setContent(e.target.value)}
-            className="w-full px-5 py-4 bg-white border border-warm-200 rounded-2xl font-mono text-sm min-h-[300px] resize-y focus:outline-none focus:border-coral-300 text-brown-700 placeholder-brown-300 shadow-card"
-            placeholder="写点什么...&#10;&#10;小提示：换行会自动分段，插入图片用 📷 按钮" />
+        {/* 编辑器：所见即所得 */}
+        <div
+          ref={editorRef}
+          contentEditable
+          suppressContentEditableWarning
+          className="w-full min-h-[400px] bg-white border border-warm-200 rounded-2xl p-6 text-brown-700 leading-8 focus:outline-none focus:border-coral-300 shadow-card text-base"
+          style={{ whiteSpace: 'pre-wrap' }}
+          data-placeholder="开始写日记吧... 💕"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              // 回车自动分段
+            }
+            // Ctrl+B/I/U 快捷键
+            if ((e.ctrlKey || e.metaKey) && e.key === 'b') { e.preventDefault(); exec('bold'); }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'i') { e.preventDefault(); exec('italic'); }
+          }}
+        />
+
+        {/* 占位提示 */}
+        {!isEdit && (
+          <p className="text-xs text-brown-300 text-center -mt-2">
+            💡 像 Word 一样直接打字 | 选中文字用工具栏加粗/变色 | 📷 插入照片
+          </p>
         )}
 
-        {/* 按钮 */}
+        {/* 底部按钮 */}
         <div className="flex items-center gap-3">
           <button onClick={handleSubmit} disabled={saving}
             className="px-8 py-3 bg-coral-400 text-white rounded-full hover:bg-coral-500 disabled:opacity-50 transition font-medium shadow-md shadow-coral-200">
