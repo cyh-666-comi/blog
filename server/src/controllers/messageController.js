@@ -13,4 +13,9 @@ async function createMessage(req, res) {
   res.status(201).json({ data: messages });
 }
 
-module.exports = { getMessages, createMessage };
+async function deleteMessage(req, res) {
+  await db.prepare('DELETE FROM messages WHERE id = ?').run(req.params.id);
+  res.json({ message: '已删除' });
+}
+
+module.exports = { getMessages, createMessage, deleteMessage };

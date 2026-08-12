@@ -165,18 +165,19 @@ async function initDatabase() {
 
   // 创建默认用户
   const bcrypt = require('bcryptjs');
+  const users = [
+    { username: 'admin', email: 'admin@diary.com', password: 'admin123', role: 'admin' },
+    { username: 'cyh', email: 'cyh@diary.com', password: '050728', role: 'admin' },
+    { username: 'frz', email: 'frz@diary.com', password: '040216', role: 'admin' },
+  ];
   try {
-    const cyhExists = await db.prepare('SELECT id FROM users WHERE username = ?').get('cyh');
-    if (!cyhExists) {
-      const hash = bcrypt.hashSync('050728', 10);
-      await db.prepare('INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)').run('cyh', 'cyh@diary.com', hash, 'admin');
-      console.log('✓ 用户: cyh / 050728');
-    }
-    const frzExists = await db.prepare('SELECT id FROM users WHERE username = ?').get('frz');
-    if (!frzExists) {
-      const hash = bcrypt.hashSync('040216', 10);
-      await db.prepare('INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)').run('frz', 'frz@diary.com', hash, 'admin');
-      console.log('✓ 用户: frz / 040216');
+    for (const u of users) {
+      const exists = await db.prepare('SELECT id FROM users WHERE username = ?').get(u.username);
+      if (!exists) {
+        const hash = bcrypt.hashSync(u.password, 10);
+        await db.prepare('INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)').run(u.username, u.email, hash, u.role);
+        console.log(`✓ 用户: ${u.username}`);
+      }
     }
   } catch (e) { console.log('用户初始化:', e.message); }
 }

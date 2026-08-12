@@ -8,7 +8,7 @@ export default function Messages() {
   const [text, setText] = useState('');
   const [author, setAuthor] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const { user } = useAuth();
+  const { user, isUser } = useAuth();
 
   useEffect(() => { setAuthor(user?.username || ''); }, [user]);
 
@@ -16,6 +16,12 @@ export default function Messages() {
     messagesAPI.getList()
       .then(res => setMessages(res.data))
       .catch(console.error).finally(() => setLoading(false));
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm('确定删除这条留言吗？')) return;
+    try { await messagesAPI.delete(id); fetch(); }
+    catch (err) { alert(err.message); }
   };
 
   useEffect(() => { fetch(); }, []);
@@ -68,10 +74,16 @@ export default function Messages() {
       ) : (
         <div className="space-y-3">
           {messages.map(m => (
-            <div key={m.id} className="bg-white border border-warm-200 rounded-2xl p-5 shadow-card">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="font-medium text-sm text-coral-500">{m.author_name}</span>
-                <span className="text-xs text-brown-300">{new Date(m.created_at).toLocaleString('zh-CN')}</span>
+            <div key={m.id} className="bg-white border border-warm-200 rounded-2xl p-5 shadow-card group">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-sm text-coral-500">{m.author_name}</span>
+                  <span className="text-xs text-brown-300">{new Date(m.created_at).toLocaleString('zh-CN')}</span>
+                </div>
+                {isUser && (
+                  <button onClick={() => handleDelete(m.id)}
+                    className="text-xs text-brown-300 hover:text-red-400 opacity-0 group-hover:opacity-100 transition">删除</button>
+                )}
               </div>
               <p className="text-brown-600 text-sm leading-relaxed whitespace-pre-wrap">{m.content}</p>
             </div>

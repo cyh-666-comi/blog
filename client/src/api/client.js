@@ -92,6 +92,7 @@ export const uploadAPI = {
 export const messagesAPI = {
   getList: () => apiClient.get('/messages'),
   create: (data) => apiClient.post('/messages', data),
+  delete: (id) => apiClient.delete(`/messages/${id}`),
 };
 
 export default apiClient;
