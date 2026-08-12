@@ -6,23 +6,110 @@
 body {
   @apply text-brown-700 antialiased;
   background-color: #FFF8F0;
-  background-image:
-    radial-gradient(circle at 10% 20%, rgba(255,183,178,0.12) 0%, transparent 45%),
-    radial-gradient(circle at 85% 75%, rgba(255,171,118,0.10) 0%, transparent 45%),
-    radial-gradient(circle at 50% 50%, rgba(255,182,193,0.06) 0%, transparent 60%);
   min-height: 100vh;
+  overflow-x: hidden;
 }
+
+/* 主背景：多层渐变 + 点阵 */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse at 15% 10%, rgba(255,182,170,0.18) 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 90%, rgba(255,171,118,0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(255,209,220,0.10) 0%, transparent 70%),
+    radial-gradient(circle at 30% 60%, rgba(255,183,178,0.08) 0%, transparent 40%),
+    radial-gradient(circle at 70% 30%, rgba(255,182,193,0.08) 0%, transparent 40%);
+}
+
+/* 点阵纹路 */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    radial-gradient(circle, rgba(255,127,80,0.06) 1px, transparent 1px);
+  background-size: 32px 32px;
+  opacity: 0.5;
+}
+
+/* 内容区置于背景之上 */
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== 浮动装饰动画 ===== */
+@keyframes floatUp {
+  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.7; }
+  25% { transform: translateY(-12px) rotate(3deg); }
+  50% { transform: translateY(-6px) rotate(-2deg); opacity: 1; }
+  75% { transform: translateY(-18px) rotate(1deg); }
+}
+
+@keyframes floatDown {
+  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.5; }
+  50% { transform: translateY(10px) rotate(-5deg); opacity: 0.8; }
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes wobble {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(5deg); }
+  75% { transform: rotate(-5deg); }
+}
+
+.animate-float { animation: floatUp 5s ease-in-out infinite; }
+.animate-float-delay { animation: floatUp 6s ease-in-out 2s infinite; }
+.animate-float-slow { animation: floatDown 7s ease-in-out 1s infinite; }
+.animate-sparkle { animation: sparkle 3s ease-in-out infinite; }
+.animate-wobble { animation: wobble 2s ease-in-out infinite; }
 
 /* ===== 滚动条 ===== */
 ::-webkit-scrollbar { @apply w-2; }
-::-webkit-scrollbar-track { background: #FFF5EC; }
+::-webkit-scrollbar-track { background: #FFF5EC; border-radius: 9999px; }
 ::-webkit-scrollbar-thumb { background: #FFD1C8; border-radius: 9999px; }
 ::-webkit-scrollbar-thumb:hover { background: #FFB5A7; }
 
 /* ===== 选中文字 ===== */
 ::selection { background: #FFD1DC; color: #5D4037; }
 
-/* ===== 富文本（可爱风） ===== */
+/* ===== 可爱分隔线 ===== */
+.cute-divider {
+  display: flex; align-items: center; justify-content: center; gap: 0.75rem;
+  margin: 2rem 0;
+  color: #FFB5A7;
+  font-size: 0.75rem;
+}
+.cute-divider::before, .cute-divider::after {
+  content: '';
+  flex: 1;
+  max-width: 80px;
+  height: 2px;
+  background: linear-gradient(to right, transparent, #FFD1C8, transparent);
+  border-radius: 9999px;
+}
+
+/* ===== 心跳动画 ===== */
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  15% { transform: scale(1.15); }
+  30% { transform: scale(1); }
+  45% { transform: scale(1.1); }
+  60% { transform: scale(1); }
+}
+.animate-heartbeat { animation: heartbeat 1.5s ease-in-out infinite; }
+
+/* ===== 富文本 ===== */
 .article-content h1 { @apply text-2xl font-bold my-5 text-brown-800; }
 .article-content h2 { @apply text-xl font-bold my-4 text-coral-500; }
 .article-content h3 { @apply text-lg font-semibold my-3 text-brown-700; }
@@ -32,27 +119,17 @@ body {
 .article-content li { @apply leading-8; }
 .article-content blockquote {
   @apply border-l-4 border-coral-300 pl-5 my-5 italic text-brown-500 rounded-r-2xl;
-  background: #FFF5F2;
-  padding: 1rem 1.25rem;
+  background: #FFF5F2; padding: 1rem 1.25rem;
 }
 .article-content pre {
   @apply rounded-2xl overflow-x-auto my-5 text-sm border border-warm-200;
-  background: #FFF5EC;
-  padding: 1.25rem;
-  color: #5D4037;
-  font-family: 'Fira Code', 'Consolas', monospace;
+  background: #FFF5EC; padding: 1.25rem; color: #5D4037;
 }
-.article-content code {
-  @apply text-coral-500 bg-warm-100 px-1.5 py-0.5 rounded-lg text-sm;
-}
-.article-content pre code {
-  @apply bg-transparent text-brown-700 p-0;
-}
+.article-content code { @apply text-coral-500 bg-warm-100 px-1.5 py-0.5 rounded-lg text-sm; }
+.article-content pre code { @apply bg-transparent text-brown-700 p-0; }
 .article-content img { @apply max-w-full rounded-2xl my-5 border border-warm-200; }
 .article-content a { @apply text-coral-500 hover:text-coral-400 underline decoration-coral-200 underline-offset-2; }
 .article-content table { @apply w-full border-collapse my-5; }
-.article-content th, .article-content td {
-  @apply border border-warm-200 px-4 py-2.5 text-left text-brown-700;
-}
+.article-content th, .article-content td { @apply border border-warm-200 px-4 py-2.5 text-left text-brown-700; }
 .article-content th { @apply bg-warm-100 font-semibold text-brown-800 rounded-t-xl; }
 .article-content hr { @apply border-warm-200 my-8 border-dashed; }

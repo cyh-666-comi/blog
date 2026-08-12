@@ -30,12 +30,24 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-warm-50"
-      style={{ backgroundImage: 'radial-gradient(circle at 20% 30%, rgba(255,183,178,0.15) 0%, transparent 50%), radial-gradient(circle at 80% 70%, rgba(255,171,118,0.12) 0%, transparent 50%)' }}>
-      <div className="bg-white rounded-3xl shadow-soft-lg p-8 w-full max-w-sm border border-warm-200">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+      {/* 浮动装饰 */}
+      <span className="absolute top-[10%] left-[8%] text-4xl animate-float select-none pointer-events-none">🦴</span>
+      <span className="absolute top-[20%] right-[10%] text-3xl animate-float-delay select-none pointer-events-none">💕</span>
+      <span className="absolute bottom-[25%] left-[12%] text-2xl animate-float-slow select-none pointer-events-none">🐾</span>
+      <span className="absolute bottom-[15%] right-[8%] text-3xl animate-float select-none pointer-events-none">🌸</span>
+      <span className="absolute top-[40%] left-[5%] text-2xl animate-sparkle select-none pointer-events-none">✨</span>
+      <span className="absolute top-[55%] right-[6%] text-3xl animate-sparkle select-none pointer-events-none" style={{animationDelay:'1.5s'}}>✨</span>
+      <span className="absolute bottom-[40%] left-[85%] text-4xl animate-wobble select-none pointer-events-none">🐕</span>
+      <span className="absolute top-[8%] left-[75%] text-2xl animate-float-delay select-none pointer-events-none">🎀</span>
+
+      <div className="bg-white/90 backdrop-blur rounded-3xl shadow-soft-lg p-8 w-full max-w-sm border border-warm-200 relative z-10">
         <div className="text-center mb-8">
-          <p className="text-6xl mb-4">🐕</p>
+          <p className="text-6xl mb-4 animate-heartbeat">🐕</p>
           <h1 className="text-2xl font-bold text-brown-800">线条小狗日记</h1>
+          <div className="flex justify-center gap-1 mt-2 text-sm">
+            <span>🐾</span><span>💕</span><span>🐾</span><span>💕</span><span>🐾</span>
+          </div>
         </div>
 
         {error && <div className="bg-red-50 border border-red-200 text-red-500 text-sm p-3 rounded-2xl mb-4 text-center">{error}</div>}

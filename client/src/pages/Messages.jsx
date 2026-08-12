@@ -35,9 +35,10 @@ export default function Messages() {
   return (
     <div>
       <div className="text-center mb-8">
-        <p className="text-5xl mb-2">💬</p>
+        <p className="text-5xl mb-2 animate-wobble inline-block">💬</p>
         <h1 className="text-xl font-bold text-brown-800">留言板</h1>
-        <p className="text-brown-400 text-sm mt-1">留下你想说的话吧~</p>
+        <p className="text-brown-400 text-sm mt-1">留下你想说的话吧~ ✨</p>
+        <div className="cute-divider">🌸 💕 🌸</div>
       </div>
 
       {/* 发留言 */}
@@ -60,7 +61,9 @@ export default function Messages() {
         <div className="flex justify-center py-10"><div className="animate-spin rounded-full h-7 w-7 border-2 border-coral-200 border-t-coral-400"></div></div>
       ) : messages.length === 0 ? (
         <div className="text-center py-16 text-brown-400 bg-white rounded-3xl shadow-card border border-warm-200">
-          <p className="text-4xl mb-3">📭</p><p>还没有留言，来做第一个留言的人吧~</p>
+          <p className="text-5xl mb-4 animate-wobble inline-block">📭</p>
+          <p className="text-lg">还没有留言呢~</p>
+          <p className="text-sm mt-1">来做第一颗小星星吧 ✨</p>
         </div>
       ) : (
         <div className="space-y-3">
